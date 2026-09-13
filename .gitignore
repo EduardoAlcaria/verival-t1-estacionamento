@@ -1,0 +1,7 @@
+target/
+lib/
+*.class
+*.zip
+.idea/
+.vscode/
+*.iml
