@@ -2,6 +2,8 @@
 
 Verificacao e Validacao de Software, PUCRS.
 
+**Integrantes:** Eduardo Alcaria, Arthur Pimentel, Ethan Soares
+
 Implementacao da classe responsavel pelo calculo do valor a ser pago pelo
 ticket de estacionamento de um centro comercial, com casos de teste unitarios
 projetados por particionamento em classes de equivalencia e analise de valor
