@@ -1,0 +1,124 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazilian]{babel}
+\usepackage{geometry}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{titling}
+
+\geometry{margin=2.2cm}
+
+\title{Verificação e Validação de Software \\ \large Trabalho 1: Casos de Teste da Tarifa de Estacionamento}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-2.5em}
+
+\section*{Introdução}
+
+Este documento apresenta o conjunto de casos de teste projetados para a classe
+\texttt{CalculadoraTarifa}, responsável pelo cálculo do valor a ser pago pelo
+ticket de estacionamento. Os casos foram derivados por particionamento em
+classes de equivalência e por análise de valor limite, cobrindo as
+variáveis de entrada: horário de entrada, horário de saída, duração de
+permanência, condição de pernoite e status de cliente VIP.
+
+\section*{Classes de equivalência identificadas}
+
+\begin{itemize}
+  \item \textbf{Horário de entrada}: válido no intervalo 08:00 a 23:59; inválido no
+        intervalo 00:00 a 07:59.
+  \item \textbf{Horário de saída}: válido no intervalo 08:00 a 01:59 (dia seguinte);
+        inválido no intervalo 02:00 a 07:59.
+  \item \textbf{Duração de permanência (sem pernoite)}: cortesia (até 20 minutos),
+        tarifa fixa (21 a 60 minutos), tarifa fixa mais horas adicionais (acima de 60
+        minutos).
+  \item \textbf{Condição de pernoite}: saída antes das 08:00 do dia seguinte à
+        entrada (sem pernoite) ou a partir das 08:00 do dia seguinte, inclusive
+        (com pernoite, contando uma tarifa de pernoite por cada janela de 24 horas
+        excedida).
+  \item \textbf{Cliente}: VIP (desconto de 50\% sobre o valor final) ou não VIP.
+  \item \textbf{Ordem cronológica}: saída posterior à entrada (válida) ou saída
+        anterior ou igual à entrada (inválida).
+\end{itemize}
+
+\section*{Casos de teste: cálculo do valor da tarifa}
+
+Todos os casos abaixo assumem entrada e saída válidas quanto ao horário. A coluna
+\emph{Valor esperado} é o retorno do método \texttt{calcular}.
+
+\begin{longtable}{@{}p{1.4cm}p{2.6cm}p{2.9cm}p{0.8cm}p{2.7cm}p{2.3cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Entrada} & \textbf{Saída} & \textbf{VIP} & \textbf{Técnica / limite} & \textbf{Valor esperado} \\
+\midrule
+\endhead
+CT01 & 10/03/2026 08:00 & 10/03/2026 08:19 & Não & Partição: cortesia (19 min) & R\$ 0,00 \\
+CT02 & 10/03/2026 08:00 & 10/03/2026 08:20 & Não & Limite: fim da cortesia (20 min) & R\$ 0,00 \\
+CT03 & 10/03/2026 08:00 & 10/03/2026 08:21 & Não & Limite: início da tarifa fixa (21 min) & R\$ 15,00 \\
+CT04 & 10/03/2026 08:00 & 10/03/2026 08:59 & Não & Partição: tarifa fixa (59 min) & R\$ 15,00 \\
+CT05 & 10/03/2026 08:00 & 10/03/2026 09:00 & Não & Limite: fim da tarifa fixa (60 min) & R\$ 15,00 \\
+CT06 & 10/03/2026 08:00 & 10/03/2026 09:01 & Não & Limite: início da 1\textsuperscript{a} hora adicional (61 min) & R\$ 20,00 \\
+CT07 & 10/03/2026 08:00 & 10/03/2026 10:00 & Não & Limite: fim da 1\textsuperscript{a} hora adicional (120 min) & R\$ 20,00 \\
+CT08 & 10/03/2026 08:00 & 10/03/2026 10:01 & Não & Limite: início da 2\textsuperscript{a} hora adicional (121 min) & R\$ 25,00 \\
+CT09 & 10/03/2026 08:00 & 10/03/2026 12:00 & Não & Partição: permanência de 4 horas & R\$ 30,00 \\
+CT10 & 10/03/2026 08:00 & 10/03/2026 08:15 & Não & Limite: início do horário de entrada permitido (08:00) & R\$ 0,00 \\
+CT11 & 10/03/2026 23:59 & 11/03/2026 00:30 & Não & Limite: fim do horário de entrada permitido (23:59) & R\$ 15,00 \\
+CT12 & 10/03/2026 23:00 & 11/03/2026 01:59 & Não & Limite: fim do horário de saída permitido, sem pernoite (01:59) & R\$ 25,00 \\
+CT13 & 10/03/2026 20:00 & 11/03/2026 01:59 & Não & Limite: imediatamente antes da condição de pernoite & R\$ 40,00 \\
+CT14 & 10/03/2026 20:00 & 11/03/2026 08:00 & Não & Limite: início da condição de pernoite (08:00 do dia seguinte) & R\$ 50,00 \\
+CT15 & 10/03/2026 20:00 & 12/03/2026 08:00 & Não & Partição: duas pernoites completas & R\$ 100,00 \\
+CT16 & 10/03/2026 08:00 & 10/03/2026 08:21 & Sim & Partição: cliente VIP com tarifa fixa & R\$ 7,50 \\
+CT17 & 10/03/2026 20:00 & 11/03/2026 08:00 & Sim & Partição: cliente VIP com pernoite & R\$ 25,00 \\
+CT18 & 10/03/2026 08:00 & 10/03/2026 08:10 & Sim & Partição: cliente VIP dentro da cortesia & R\$ 0,00 \\
+\bottomrule
+\end{longtable}
+
+\section*{Casos de teste: entrada de veículo fora do horário permitido}
+
+Espera-se que o método lance \texttt{IllegalArgumentException} para todos os casos
+a seguir.
+
+\begin{longtable}{@{}p{1.4cm}p{2.8cm}p{2.8cm}p{6.2cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Entrada} & \textbf{Saída} & \textbf{Técnica / limite} \\
+\midrule
+\endhead
+EI01 & 10/03/2026 07:59 & 10/03/2026 09:00 & Limite: último minuto antes da abertura \\
+EI02 & 10/03/2026 00:00 & 10/03/2026 09:00 & Partição: horário de fechamento total \\
+EI03 & 10/03/2026 03:00 & 10/03/2026 09:00 & Partição: madrugada, dentro do intervalo inválido \\
+\bottomrule
+\end{longtable}
+
+\section*{Casos de teste: saída de veículo fora do horário permitido}
+
+Espera-se que o método lance \texttt{IllegalArgumentException} para todos os casos
+a seguir. A entrada é deslocada para o dia anterior de modo a isolar a validação do
+horário de saída da validação de ordem cronológica.
+
+\begin{longtable}{@{}p{1.4cm}p{2.8cm}p{2.8cm}p{6.2cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Entrada} & \textbf{Saída} & \textbf{Técnica / limite} \\
+\midrule
+\endhead
+ES01 & 10/03/2026 20:00 & 11/03/2026 02:00 & Limite: início do intervalo de saída proibida (02:00) \\
+ES02 & 10/03/2026 20:00 & 11/03/2026 07:59 & Limite: fim do intervalo de saída proibida (07:59) \\
+ES03 & 10/03/2026 20:00 & 11/03/2026 05:00 & Partição: madrugada, dentro do intervalo proibido \\
+\bottomrule
+\end{longtable}
+
+\section*{Caso de teste: ordem cronológica inválida}
+
+\begin{longtable}{@{}p{1.4cm}p{2.8cm}p{2.8cm}p{6.2cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Entrada} & \textbf{Saída} & \textbf{Técnica / limite} \\
+\midrule
+\endhead
+ET01 & 10/03/2026 10:00 & 10/03/2026 10:00 ou 10/03/2026 09:00 & Saída igual ou anterior à entrada deve lançar \texttt{IllegalArgumentException} \\
+\bottomrule
+\end{longtable}
+
+\end{document}
