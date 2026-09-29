@@ -30,6 +30,11 @@ docs/defeitos_encontrados.tex  fonte latex do relatorio de defeitos da primeira 
 docs/defeitos_encontrados.pdf
 ```
 
+## Requisitos
+
+- Java 17
+- Maven
+
 ## Como rodar os testes
 
 Com Maven instalado:
